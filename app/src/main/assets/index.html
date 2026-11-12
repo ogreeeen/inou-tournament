@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>いのうトーナメント</title>
+<title>異能トーナメント</title>
 <style>
   :root{--bg:#0d0f1a;--panel:#151a2e;--line:#3b4a7a;--ink:#e8ecff;--mut:#8d97c2;--a:#5fd0ff;--b:#ff7a8a;--gold:#ffd166}
   *{box-sizing:border-box}
@@ -26,7 +26,7 @@
   .choice small{display:block;font-size:12px;color:var(--mut);font-weight:400;margin-top:2px}
   .choice:active{border-color:var(--gold)}
   .els{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-  .els .choice{text-align:center;font-size:14px;padding:16px 0;white-space:nowrap;letter-spacing:-.05em}
+  .els .choice{text-align:center;font-size:24px;padding:14px 0}
   .step{font-size:12px;color:var(--gold);text-align:center;margin-bottom:4px;letter-spacing:.2em}
   .build{font-size:22px;font-weight:800;text-align:center;margin:16px 0;line-height:1.5}
   .build small{display:block;font-size:13px;color:var(--mut);font-weight:400}
@@ -75,13 +75,13 @@
 <!-- 人数と名前 -->
 <section class="scr on" id="setup">
   <div class="win" style="margin:auto 0">
-    <h1>― いのうトーナメント ―</h1>
-    <p class="mut">しょくぎょう × ぞくせい × とくしゅスキル でのうりょくがきまる。<br>強さはえらぶまで分からない。</p>
+    <h1>― 異能トーナメント ―</h1>
+    <p class="mut">職業 × 属性 × 特殊スキル で能力が決まる。<br>強さは選ぶまで分からない。</p>
     <h2>プレイヤーの人数</h2>
     <div class="nums" id="nums"></div>
-    <p class="mut" style="margin-top:8px">足りないわくはCPUがさんせん（ぜん8人）</p>
+    <p class="mut" style="margin-top:8px">足りない枠はCPUが参戦（全8人）</p>
     <div class="names" id="names"></div>
-    <button class="btn" id="start">のうりょくをえらびに行く</button>
+    <button class="btn" id="start">能力を選びに行く</button>
   </div>
 </section>
 
@@ -89,8 +89,8 @@
 <section class="scr" id="handoff">
   <div class="win" style="margin:auto 0">
     <h2 id="hoName"></h2>
-    <p class="mut">ほかの人はがめんを見ないでね</p>
-    <button class="btn gold" id="hoGo">のうりょくをえらぶ</button>
+    <p class="mut">ほかの人は画面を見ないでね</p>
+    <button class="btn gold" id="hoGo">能力を選ぶ</button>
   </div>
 </section>
 
@@ -109,7 +109,7 @@
   <div class="win" style="margin:auto 0">
     <h2 id="cfName"></h2>
     <div class="build" id="cfBuild"></div>
-    <p class="mut">強さはしあいで明らかになる</p>
+    <p class="mut">強さは試合で明らかになる</p>
     <button class="btn gold" id="cfNext"></button>
   </div>
 </section>
@@ -127,10 +127,10 @@
   <div class="win" style="margin:auto 0">
     <h1 id="endTitle"></h1>
     <div class="build" id="endBuild"></div>
-    <h2>ぜんいんののうりょくランク</h2>
+    <h2>全員の能力ランク</h2>
     <div class="res" id="endList"></div>
-    <button class="btn gold" id="again">同じメンバーでのうりょくをえらび直す</button>
-    <button class="btn sub" id="toSetup">人数・名前をかえる</button>
+    <button class="btn gold" id="again">同じメンバーで能力を選び直す</button>
+    <button class="btn sub" id="toSetup">人数・名前を変える</button>
   </div>
 </section>
 
@@ -156,7 +156,7 @@ function makeFighter(name, human, job, el, skill){
   return {n: name, human, job, el, skill, keys, power: job.p + skill.p, label: `${EL[el].n}の${job.n}`, revealed: false};
 }
 function rankOf(p){ return p >= 85 ? 'S' : p >= 70 ? 'A' : p >= 52 ? 'B' : p >= 35 ? 'C' : p >= 20 ? 'D' : 'E'; }
-const RANK_TXT = {S:'S（ちょう当たり！）', A:'A（当たり）', B:'B（なかなか）', C:'C（ふつう）', D:'D（いまいち）', E:'E（ちょうハズレ……）'};
+const RANK_TXT = {S:'S（超当たり！）', A:'A（当たり）', B:'B（なかなか）', C:'C（ふつう）', D:'D（いまいち）', E:'E（超ハズレ……）'};
 
 // ================= セットアップ =================
 let setup = load('setup', {count: 1, names: []});
@@ -200,15 +200,15 @@ function renderPick(){
   const L = $('pkList'); L.innerHTML = ''; L.className = '';
   $('pkReroll').style.display = 'none';
   if (cur.step === 0){
-    $('pkStep').textContent = 'STEP 1 / 3'; $('pkTitle').textContent = 'しょくぎょうをえらべ';
+    $('pkStep').textContent = 'STEP 1 / 3'; $('pkTitle').textContent = '職業をえらべ';
     cur.opts.forEach(j => L.appendChild(choice(j.n, '', () => { cur.job = j; cur.step = 1; renderPick(); })));
     rerollBtn(() => { cur.opts = drawJobs(); });
   } else if (cur.step === 1){
-    $('pkStep').textContent = 'STEP 2 / 3'; $('pkTitle').textContent = 'ぞくせいをえらべ';
+    $('pkStep').textContent = 'STEP 2 / 3'; $('pkTitle').textContent = '属性をえらべ';
     L.className = 'els';
     ELEMENTS.forEach(e => L.appendChild(choice(e.n, '', () => { cur.el = e.id; cur.step = 2; cur.opts = drawSkills(); renderPick(); })));
   } else {
-    $('pkStep').textContent = 'STEP 3 / 3'; $('pkTitle').textContent = 'とくしゅスキルをえらべ';
+    $('pkStep').textContent = 'STEP 3 / 3'; $('pkTitle').textContent = '特殊スキルをえらべ';
     cur.opts.forEach(s => L.appendChild(choice(s.n, s.d, () => { cur.skill = s; finishPick(); })));
     rerollBtn(() => { cur.opts = drawSkills(); });
   }
@@ -227,9 +227,9 @@ function finishPick(){
   used.job.add(cur.job.id); used.skill.add(cur.skill.id);
   const f = makeFighter(cur.p.n, true, cur.job, cur.el, cur.skill);
   players[pi].f = f;
-  $('cfName').textContent = `${cur.p.n} ののうりょく`;
+  $('cfName').textContent = `${cur.p.n} の能力`;
   $('cfBuild').innerHTML = `${f.label}<br>× ${f.skill.n}<small>${f.skill.d}</small>`;
-  $('cfNext').textContent = pi + 1 < players.length ? 'つぎの人にわたす' : 'トーナメントかいし！';
+  $('cfNext').textContent = pi + 1 < players.length ? '次の人に渡す' : 'トーナメント開始！';
   show('confirm');
 }
 $('cfNext').onclick = () => { pi++; startPick(); };
@@ -305,34 +305,34 @@ function attackLine(atk, def){
 async function reveal(f){
   if (f.revealed) return;
   f.revealed = true;
-  html(`【かんてい】${f.n}ののうりょくランク　${RANK_TXT[rankOf(f.power)]}`, 'rank');
+  html(`【鑑定】${f.n}の能力ランク　${RANK_TXT[rankOf(f.power)]}`, 'rank');
   await sleep(fast ? 40 : 1000);
 }
 
 // ---- 実況・ハプニング・締めのひとこと ----
 const HAPPEN = [
-  'かんきゃくせきからとんできたボールが、{L}のこうとうぶに当たった。',
-  '{L}のくつひもがほどけて、ごうかいにころんだ。',
-  '{L}のスマホが鳴った。……じっかからだ。',
-  'しんぱんが大きなくしゃみをした。おどろいた{L}は、思わず場外へ一歩出た。',
-  '会場にまよいこんだねこが、{L}の足元でねころがった。{L}はうごけない。',
-  '{L}はおはらが鳴った。朝ごはんを食べわすれていたらしい。',
-  '強い風がふき、{L}のカツラが……いや、なんでもない。',
+  '観客席から飛んできたボールが、{L}の後頭部に当たった。',
+  '{L}の靴ひもがほどけて、豪快に転んだ。',
+  '{L}のスマホが鳴った。……実家からだ。',
+  '審判が大きなくしゃみをした。驚いた{L}は、思わず場外へ一歩出た。',
+  '会場に迷い込んだ猫が、{L}の足元で寝転がった。{L}は動けない。',
+  '{L}はお腹が鳴った。朝ごはんを食べ忘れていたらしい。',
+  '強い風が吹き、{L}のカツラが……いや、なんでもない。',
 ];
 const OUTRO_W = [
-  '{W}はかんきゃくせきにむかって、しんしんとおじぎをした。',
+  '{W}は観客席に向かって、深々とお辞儀をした。',
   '{W}「……まあ、こんなもんでしょ」――ちょっとドヤ顔だ。',
-  '{W}はガッツポーズをしようとして、こしをいためた。',
-  '{W}はしょうりのダンスをおどった。だれもたのんでいない。',
-  '{W}「おうえんしてくれたお母さん、ありがとう！」',
+  '{W}はガッツポーズをしようとして、腰を痛めた。',
+  '{W}は勝利のダンスを踊った。誰も頼んでいない。',
+  '{W}「応援してくれたお母さん、ありがとう！」',
 ];
 const OUTRO_L = [
-  '{L}「今日は……ちょうしがわるかっただけだ……」',
-  '{L}はたんかではこばれながら、かんきゃくに手をふっている。',
-  '{L}「つぎは……ぜったいに……」――そのままねむってしまった。',
-  '{L}はなきながら、帰りにラーメンを食べることにした。',
-  'かんきゃくせきの{L}のかぞくが、そっとはくしゅをおくっている。',
-  '{L}「……のうりょく、えらび直したい」',
+  '{L}「今日は……調子が悪かっただけだ……」',
+  '{L}は担架で運ばれながら、観客に手を振っている。',
+  '{L}「次は……絶対に……」――そのまま眠ってしまった。',
+  '{L}は泣きながら、帰りにラーメンを食べることにした。',
+  '観客席の{L}の家族が、そっと拍手を送っている。',
+  '{L}「……能力、選び直したい」',
 ];
 const fill2 = (s, W, L) => s.replace(/\{W\}/g, W.n).replace(/\{L\}/g, L.n);
 async function hit(atk, def, dmg, text, C, a, b){
@@ -346,10 +346,9 @@ async function fight(a, b){
   a.hp = 100; b.hp = 100; status(a, b);
   const C = f => f === a ? 'a' : 'b';
   // ===== 起：入場 =====
-  html('<span class="tag">き</span>入場', 'dim');
-  await line(`じっきょう「青コーナー、${a.n}！　${a.label}、きりふだは『${a.skill.n}』！」`, 'say');
+  await line(`実況「青コーナー、${a.n}！　${a.label}、切り札は『${a.skill.n}』！」`, 'say');
   await reveal(a);
-  await line(`じっきょう「赤コーナー、${b.n}！　${b.label}、きりふだは『${b.skill.n}』！」`, 'say');
+  await line(`実況「赤コーナー、${b.n}！　${b.label}、切り札は『${b.skill.n}』！」`, 'say');
   await reveal(b);
 
   // 勝敗とパターンを決める
@@ -367,54 +366,51 @@ async function fight(a, b){
   const pattern = decisive ? 'event' : R() < .15 ? 'happen' : (gap < 30 && R() < .55) ? 'comeback' : 'crush';
 
   // ===== 承：ぶつかり合い =====
-  html('<span class="tag">しょう</span>ぶつかり合い', 'dim');
   const first = R() < .5 ? a : b, second = first === a ? b : a;
-  const lead = pattern === 'comeback' ? L : W;        // しょうでおしているがわ
+  const lead = pattern === 'comeback' ? L : W;        // 承で押している側
   const big = 26 + R() * 14, small = 8 + R() * 10;
   await hit(first, second, first === lead ? big : small, fill(pick(first.job.lines), first, second), C, a, b);
   await hit(second, first, second === lead ? big : small, fill(pick(second.job.lines), second, first), C, a, b);
   // 解説
   if (EL_BEATS[a.el] === b.el || EL_BEATS[b.el] === a.el){
     const s1 = EL_BEATS[a.el] === b.el ? a : b, s2 = s1 === a ? b : a;
-    await line(`かいせつ「${EL[s1.el].n}は${EL[s2.el].n}に強い。ぞくせいでは${s1.n}がゆうりですね」`, 'say');
+    await line(`解説「${EL[s1.el].n}は${EL[s2.el].n}に強い。属性では${s1.n}が有利ですね」`, 'say');
   } else if (gap >= 35){
     const hi = a.power > b.power ? a : b;
-    await line(`かいせつ「これは……地力がちがいすぎます。${hi.n}、よゆうのひょうじょうです」`, 'say');
+    await line(`解説「これは……地力が違いすぎます。${hi.n}、余裕の表情です」`, 'say');
   } else {
-    await line(`かいせつ「${lead.n}がややおしていますね。でも、まだきりふだがのこっています」`, 'say');
+    await line(`解説「${lead.n}がやや押していますね。でも、まだ切り札が残っています」`, 'say');
   }
 
   // ===== 転：切り札・ハプニング =====
-  html('<span class="tag">てん</span>まさかのてんかい', 'dim');
   if (found && !decisive){
     for (const t of found.ev.t) await line(fill(t, found.A, found.B), 'ev', 900);
   }
   if (pattern === 'event'){
-    await line('――そのとき、思いもよらないことがおきた。', 'sys');
+    await line('――そのとき、思いもよらないことが起きた。', 'sys');
     for (const t of found.ev.t) await line(fill(t, found.A, found.B), 'ev', 900);
   } else if (pattern === 'comeback'){
-    await line(`じっきょう「${L.n}、このままおし切るか！？」`, 'say');
-    await line(`${W.n}「……まだだ。きりふだ『${W.skill.n}』！」`, C(W), 800);
+    await line(`実況「${L.n}、このまま押し切るか！？」`, 'say');
+    await line(`${W.n}「……まだだ。切り札『${W.skill.n}』！」`, C(W), 800);
     await hit(W, L, 45 + R() * 15, fill(pick(W.skill.lines), W, L), C, a, b);
-    await line('じっきょう「な、なんとー！けいせいぎゃくてんだーっ！」', 'say');
+    await line('実況「な、なんとー！形勢逆転だーっ！」', 'say');
   } else if (pattern === 'crush'){
-    await line(`${L.n}「こうなったら……きりふだ『${L.skill.n}』！」`, C(L), 800);
+    await line(`${L.n}「こうなったら……切り札『${L.skill.n}』！」`, C(L), 800);
     await line(fill(pick(L.skill.lines), L, W), C(L), 900);
-    if (L.skill.p < 15) await line(`……${W.n}は、きょとんとしている。何もおきていない。`, 'dim', 900);
-    else await line(`しかし${W.n}は、それをましょうめんからうけ止めた！`, C(W), 900);
-    await line(`じっきょう「きいてない！${W.n}、びくともしません！」`, 'say');
+    if (L.skill.p < 15) await line(`……${W.n}は、きょとんとしている。何も起きていない。`, 'dim', 900);
+    else await line(`しかし${W.n}は、それを真正面から受け止めた！`, C(W), 900);
+    await line(`実況「効いてない！${W.n}、びくともしません！」`, 'say');
   } else {
-    await line(`じっきょう「おっと、これは……！？」`, 'say');
+    await line(`実況「おっと、これは……！？」`, 'say');
     await line(fill2(pick(HAPPEN), W, L), 'ev', 1000);
-    await line(`じっきょう「${W.n}、このげきをみのがさない！」`, 'say');
+    await line(`実況「${W.n}、この隙を見逃さない！」`, 'say');
   }
 
   // ===== 結：決着 =====
-  html('<span class="tag">けつ</span>けっちゃく', 'dim');
   if (pattern !== 'event') await hit(W, L, L.hp, fill(pick(W.job.lines), W, L), C, a, b);
   if (L.hp > 0){ L.hp = 0; status(a, b); }
   await line(`${L.n}は たおれた。`, C(L));
-  await line(`🏆 ${W.n}のしょうり！`, 'big');
+  await line(`🏆 ${W.n}の勝利！`, 'big');
   await line(R() < .5 ? fill2(pick(OUTRO_W), W, L) : fill2(pick(OUTRO_L), W, L), 'dim', 1000);
   return W;
 }
@@ -432,16 +428,16 @@ async function runTournament(){
   fast = false; $('skip').style.color = '';
   log.innerHTML = ''; status(); show('battle');
   $('round').textContent = '組み合わせ';
-  await line('―――― いのうトーナメント かいまく ――――', 'sys');
+  await line('―――― 異能トーナメント 開幕 ――――', 'sys');
   html(entrants.map((f, i) => (i % 2 === 0 ? '・' : '　vs　') + `${f.n}<span style="opacity:.7">（${f.label}）</span>` + (i % 2 ? '<br>' : '')).join(''), 'br');
   await tapToContinue();
 
-  const rounds = ['いっかいせん', 'じゅんけっしょう', 'けっしょう'];
+  const rounds = ['一回戦', '準決勝', '決勝'];
   let alive = entrants;
   for (let r = 0; r < 3; r++){
     const next = [];
     for (let m = 0; m < alive.length; m += 2){
-      const label = alive.length > 2 ? `${rounds[r]}　だい${m / 2 + 1}しあい` : rounds[r];
+      const label = alive.length > 2 ? `${rounds[r]}　第${m / 2 + 1}試合` : rounds[r];
       $('round').textContent = label;
       log.innerHTML = ''; status();
       await line(`【${label}】`, 'sys');
@@ -452,8 +448,8 @@ async function runTournament(){
   }
   stopSpeak();
   const champ = alive[0];
-  $('endTitle').textContent = `🏆 ゆうしょう：${champ.n} 🏆`;
-  $('endBuild').innerHTML = `${champ.label}<br>× ${champ.skill.n}<small>のうりょくランク ${rankOf(champ.power)}</small>`;
+  $('endTitle').textContent = `🏆 優勝：${champ.n} 🏆`;
+  $('endBuild').innerHTML = `${champ.label}<br>× ${champ.skill.n}<small>能力ランク ${rankOf(champ.power)}</small>`;
   $('endList').innerHTML = [...entrants].sort((x, y) => y.power - x.power)
     .map(f => `<div><b>${rankOf(f.power)}</b><span>${f.n}：${f.label} × ${f.skill.n}</span></div>`).join('');
   show('end');
