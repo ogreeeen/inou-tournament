@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- トーナメント表と稲妻 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:strokeColor="#8D97C2" android:strokeWidth="3" android:fillColor="#00000000"
+        android:pathData="M34,38h10v16h10M34,70h10v-16M74,38h-10v16h-10M74,70h-10v-16" />
+    <path android:fillColor="#FFD166" android:pathData="M57,36L46,56h8l-4,16l13,-22h-8z" />
+</vector>
