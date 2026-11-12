@@ -296,7 +296,7 @@ function tapToContinue(){
 }
 function status(a, b){
   // 上部は名前ではなく「炎のラーメン屋」のような能力の概要（プレイヤーは名前も小さく）
-  const row = (f, c) => `<div class="hp"><b style="color:var(--${c})">${f.label}${f.human ? `<small style="display:block;font-size:11px;opacity:.8;font-weight:400">${f.n}</small>` : ''}</b><div class="bar ${f.hp < 30 ? 'low' : ''}"><i style="width:${Math.max(0, f.hp)}%"></i></div><span>${Math.max(0, Math.round(f.hp))}</span></div>`;
+  const row = (f, c) => `<div class="hp"><b style="color:var(--${c})">${f.label}<small style="display:block;font-size:11px;opacity:.8;font-weight:400">${f.n}</small></b><div class="bar ${f.hp < 30 ? 'low' : ''}"><i style="width:${Math.max(0, f.hp)}%"></i></div><span>${Math.max(0, Math.round(f.hp))}</span></div>`;
   $('status').innerHTML = a ? row(a, 'a') + row(b, 'b') : '';
 }
 const fill = (s, A, B) => s.replace(/\{A\}/g, A.n).replace(/\{B\}/g, B.n);
