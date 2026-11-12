@@ -24,6 +24,7 @@ class MainActivity : Activity() {
         setContentView(web)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        web.settings.mediaPlaybackRequiresUserGesture = false
         web.webChromeClient = WebChromeClient()
         web.addJavascriptInterface(Bridge(), "Android")
         web.loadUrl("file:///android_asset/index.html")
@@ -58,7 +59,14 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         tts?.stop()
+        // アプリを閉じたらBGMも止める
+        web.evaluateJavascript("window.bgm&&bgm.pause()", null)
         super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        web.evaluateJavascript("window.playBgm&&playBgm()", null)
     }
 
     override fun onDestroy() {

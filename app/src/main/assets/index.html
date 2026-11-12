@@ -68,6 +68,17 @@
     #log{margin-top:0;min-height:0}
     .els{grid-template-columns:repeat(5,1fr)}
   }
+  .tree{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:auto repeat(8,38px);column-gap:6px;margin:6px 0 4px;font-size:12px}
+  .tree .th{text-align:center;color:var(--mut);font-size:11px;padding-bottom:4px}
+  .tree .cell{display:flex;align-items:center;position:relative}
+  .tree .cell span{display:block;width:100%;padding:4px 5px;border-radius:5px;background:#0a0c16;border:1px solid var(--line);line-height:1.25;word-break:break-all}
+  .tree .cell i{font-style:normal;font-size:10px;color:var(--gold);margin-left:3px}
+  .tree .won span{border-color:var(--gold);color:var(--ink);font-weight:700}
+  .tree .lost span{color:#5d6588;text-decoration:line-through}
+  .tree .champ span{background:#5a4513;border:2px solid var(--gold);color:#fff;font-weight:800;text-align:center}
+  .tree .won::after{content:'';position:absolute;right:-6px;width:6px;border-top:2px solid var(--gold)}
+  .tree .won.top::before{content:'';position:absolute;right:-6px;top:50%;height:50%;border-right:2px solid var(--gold)}
+  .tree .won.bot::before{content:'';position:absolute;right:-6px;bottom:50%;height:50%;border-right:2px solid var(--gold)}
 </style>
 </head>
 <body>
@@ -116,7 +127,7 @@
 
 <!-- 試合 -->
 <section class="scr" id="battle">
-  <div id="top"><span id="round"></span><button id="voice">🔇 読み上げ</button><button id="skip">⏩</button></div>
+  <div id="top"><span id="round"></span><button id="music">🎵</button><button id="voice">🔇 読み上げ</button><button id="skip">⏩</button></div>
   <div class="win" id="status"></div>
   <div class="win" id="log"></div>
   <div id="next">▼</div>
@@ -126,9 +137,7 @@
 <section class="scr" id="end">
   <div class="win" style="margin:auto 0">
     <h1 id="endTitle"></h1>
-    <div class="build" id="endBuild"></div>
-    <h2>全員の能力ランク</h2>
-    <div class="res" id="endList"></div>
+    <div id="endTree"></div>
     <button class="btn gold" id="again">同じメンバーで能力を選び直す</button>
     <button class="btn sub" id="toSetup">人数・名前を変える</button>
   </div>
@@ -234,6 +243,20 @@ function finishPick(){
 }
 $('cfNext').onclick = () => { pi++; startPick(); };
 
+// ================= BGM（ごく小さな音量でループ） =================
+const BGM_VOL = 0.06;
+const bgm = new Audio('bgm.mp3'); bgm.loop = true; bgm.volume = BGM_VOL; window.bgm = bgm;
+let musicOn = load('music', true);
+function setMusicBtn(){ $('music').style.opacity = musicOn ? 1 : .35; }
+setMusicBtn();
+function playBgm(){ if (musicOn && bgm.paused) bgm.play().catch(() => {}); }
+// ブラウザの決まりで、最初のタップのあとに鳴らし始める
+document.addEventListener('pointerdown', playBgm, {once: false, passive: true});
+$('music').onclick = e => { e.stopPropagation(); musicOn = !musicOn; save('music', musicOn); setMusicBtn(); if (musicOn) playBgm(); else bgm.pause(); };
+// 読み上げ中は、さらに少しだけ下げる
+function duck(on){ bgm.volume = on ? BGM_VOL * .5 : BGM_VOL; }
+document.addEventListener('visibilitychange', () => { if (document.hidden) bgm.pause(); else playBgm(); });
+
 // ================= ログ表示・読み上げ =================
 let speak = load('voice', false), fast = false;
 const log = $('log');
@@ -246,7 +269,7 @@ function say(text){
   return new Promise(res => {
     // 「実況」「解説」や話している人の名前、行頭の▶・「名前：」は読まない
     let t = text.replace(/^▶\s*/, '').replace(/^[^「」：\n]{1,20}：/, '').replace(/^[^「」\n]{1,20}?(?=「)/, '');
-    t = t.replace(/[『』「」【】▶︎―…]/g, ' ');
+    t = t.replace(/[『』「」【】▶︎―…]/g, ' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '');
     try{
       if (window.Android){ window.__said = res; Android.speak(t); return; }
       if (window.speechSynthesis){ const u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 1.1; u.onend = res; u.onerror = res; speechSynthesis.speak(u); return; }
@@ -260,7 +283,7 @@ async function line(text, cls = '', wait = 700){
   const p = document.createElement('p'); p.className = cls; log.appendChild(p);
   if (fast){ p.textContent = text; log.scrollTop = log.scrollHeight; await sleep(40); return; }
   for (let i = 1; i <= text.length; i++){ p.textContent = text.slice(0, i); if (i % 2 === 0) await sleep(18); log.scrollTop = log.scrollHeight; }
-  if (speak && cls !== 'dim') await Promise.race([say(text), sleep(10000)]); else await sleep(wait);
+  if (speak && cls !== 'dim'){ duck(true); await Promise.race([say(text), sleep(10000)]); duck(false); } else await sleep(wait);
 }
 function html(h, cls){ const d = document.createElement('div'); d.className = cls; d.innerHTML = h; log.appendChild(d); log.scrollTop = log.scrollHeight; }
 function tapToContinue(){
@@ -390,8 +413,11 @@ async function fight(a, b){
   // 勝敗とパターンを決める
   const found = findEvent(a, b);
   const decisive = found && found.ev.win;
+  const RANKS = 'SABCDE', rgap = Math.abs(RANKS.indexOf(rankOf(a.power)) - RANKS.indexOf(rankOf(b.power)));
+  const instant = !found && rgap >= 3;
   let W;
   if (decisive) W = found.ev.win === 'a' ? found.A : found.B;
+  else if (instant) W = a.power > b.power ? a : b;
   else {
     const pa = Math.pow(a.power, 2.2) * advantage(a, b), pb = Math.pow(b.power, 2.2);
     W = R() < pa / (pa + pb) ? a : b;
@@ -399,7 +425,19 @@ async function fight(a, b){
   const L = W === a ? b : a;
   const gap = Math.abs(a.power - b.power);
   // 逆転（負けそうだった側が勝つ）/ 圧勝 / ハプニング
-  const pattern = decisive ? 'event' : R() < .15 ? 'happen' : (gap < 30 && R() < .55) ? 'comeback' : 'crush';
+  // 瞬殺 / イベント / ハプニング / 逆転 / 押し切り / 圧勝
+  const pattern = instant ? 'instant' : decisive ? 'event' : R() < .13 ? 'happen'
+    : (gap < 30 && R() < .35) ? 'comeback' : R() < .5 ? 'steady' : 'crush';
+
+  if (pattern === 'instant'){
+    await line(T(['実況「試合開始！」','実況「さあ、ゴングが鳴りました！」','実況「始まりました！」'], {}), 'say');
+    await hit(W, L, 100, fill(pick(W.job.lines), W, L), C, a, b);
+    await line(T(['実況「は、速い！　一撃で決まったーっ！」','実況「瞬殺！　まばたきする暇もありませんでした！」','解説「……今の、見えました？」','実況「試合時間、わずか3秒！」','実況「ランクの差が、残酷なまでに出ました！」'], {}), 'say');
+    await line(`${L.n}は たおれた。`, C(L));
+    await line(`🏆 ${W.n}の勝利！`, 'big');
+    await line(fill2(pick(OUTRO_L), W, L), 'dim', 1000);
+    return W;
+  }
 
   // ===== 承：ぶつかり合い =====
   const first = R() < .5 ? a : b, second = first === a ? b : a;
@@ -433,6 +471,11 @@ async function fight(a, b){
     await line(`${W.n}「……まだだ。切り札『${W.skill.n}』！」`, C(W), 800);
     await hit(W, L, 45 + R() * 15, fill(pick(W.skill.lines), W, L), C, a, b);
     await line(T(TURN, {}), 'say');
+  } else if (pattern === 'steady'){
+    await line(T(['実況「{n}、攻撃の手をゆるめない！」','実況「{n}が完全に流れをつかんでいます！」','実況「{m}、防戦一方だ！」'], {n:W.n, m:L.n}), 'say');
+    await line(`${W.n}「決めさせてもらう。切り札『${W.skill.n}』！」`, C(W), 800);
+    await hit(W, L, Math.min(L.hp - 4, 30 + R() * 15), fill(pick(W.skill.lines), W, L), C, a, b);
+    await line(T(['解説「最後まで落ち着いていましたね。危なげない試合です」','解説「これは、実力どおりの展開ですね」','実況「{m}、もう立っているのがやっとだ！」'], {m:L.n}), 'say');
   } else if (pattern === 'crush'){
     await line(`${L.n}「こうなったら……切り札『${L.skill.n}』！」`, C(L), 800);
     await line(fill(pick(L.skill.lines), L, W), C(L), 900);
@@ -463,6 +506,19 @@ async function runTournament(){
     used.job.add(job.id); used.skill.add(skill.id);
     entrants.push(makeFighter('CPU ' + names.pop(), false, job, pick(ELEMENTS).id, skill));
   }
+  // CPUがいるときは、ランクAのCPUを必ず1人入れる
+  const cpus = entrants.filter(f => !f.human);
+  if (cpus.length && !cpus.some(f => rankOf(f.power) === 'A')){
+    const t = pick(cpus);
+    used.job.delete(t.job.id); used.skill.delete(t.skill.id);
+    const pairs = [];
+    JOB.filter(j => !used.job.has(j.id)).forEach(j => SKILL.filter(k => !used.skill.has(k.id)).forEach(k => { if (rankOf(j.p + k.p) === 'A') pairs.push([j, k]); }));
+    if (pairs.length){
+      const [j, k] = pick(pairs);
+      used.job.add(j.id); used.skill.add(k.id);
+      entrants[entrants.indexOf(t)] = makeFighter(t.n, false, j, pick(ELEMENTS).id, k);
+    } else { used.job.add(t.job.id); used.skill.add(t.skill.id); }
+  }
   entrants = shuffle(entrants);
   fast = false; $('skip').style.color = '';
   log.innerHTML = ''; status(); show('battle');
@@ -473,6 +529,7 @@ async function runTournament(){
 
   const rounds = ['一回戦', '準決勝', '決勝'];
   let alive = entrants;
+  const tree = [entrants.slice()];
   for (let r = 0; r < 3; r++){
     const next = [];
     for (let m = 0; m < alive.length; m += 2){
@@ -484,15 +541,33 @@ async function runTournament(){
       await tapToContinue();
     }
     alive = next;
+    tree.push(next.slice());
   }
   stopSpeak();
   const champ = alive[0];
-  $('endTitle').textContent = `🏆 優勝：${champ.n} 🏆`;
-  $('endBuild').innerHTML = `${champ.label}<br>× ${champ.skill.n}<small>能力ランク ${rankOf(champ.power)}</small>`;
-  $('endList').innerHTML = [...entrants].sort((x, y) => y.power - x.power)
-    .map(f => `<div><b>${rankOf(f.power)}</b><span>${f.n}：${f.label} × ${f.skill.n}</span></div>`).join('');
+  $('endTitle').textContent = `🏆 優勝：${disp(champ)} 🏆`;
+  $('endTree').innerHTML = bracket(tree);
   show('end');
 }
+// 表示名：プレイヤーは名前、CPUは「炎のラーメン屋」のような能力の概要
+function disp(f){ return f.human ? f.n : f.label; }
+// トーナメント表（左から 一回戦 → 準決勝 → 決勝 → 優勝）
+function bracket(tree){
+  const H = 8;   // 行数
+  let h = '<div class="tree">';
+  ['一回戦','準決勝','決勝','優勝'].forEach((t, c) => h += `<div class="th" style="grid-column:${c + 1}">${t}</div>`);
+  tree.forEach((col, c) => {
+    const span = H / col.length;
+    col.forEach((f, i) => {
+      const won = c < 3 && tree[c + 1].includes(f), champ = c === 3;
+      const cls = champ ? 'champ' : won ? 'won' : 'lost';
+      h += `<div class="cell ${cls}${c < 3 ? (i % 2 ? ' bot' : ' top') : ''}" style="grid-column:${c + 1};grid-row:${2 + i * span} / span ${span}">
+        <span>${esc(disp(f))}<i>${rankOf(f.power)}</i></span></div>`;
+    });
+  });
+  return h + '</div>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 $('again').onclick = () => $('start').click();
 $('toSetup').onclick = () => { renderSetup(); show('setup'); };
 

@@ -10,3 +10,5 @@
 - 試合はRPG風のログで進む。読み上げ・早送り対応
 
 データは `app/src/main/assets/data.js`、ゲーム本体は `index.html`。
+
+BGM：`app/src/main/assets/bgm.mp3`（フリー素材。ごく小さな音量でループ再生、画面上部の🎵でオン・オフ）
