@@ -5,398 +5,397 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>異能トーナメント</title>
 <style>
-  :root{--bg:#0d0f1a;--panel:#151a2e;--line:#3b4a7a;--ink:#e8ecff;--mut:#8d97c2;--you:#5fd0ff;--en:#ff7a8a;--gold:#ffd166}
+  :root{--bg:#0d0f1a;--panel:#151a2e;--line:#3b4a7a;--ink:#e8ecff;--mut:#8d97c2;--a:#5fd0ff;--b:#ff7a8a;--gold:#ffd166}
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"DotGothic16","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-  .scr{position:fixed;inset:0;display:none;flex-direction:column;padding:16px}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  .scr{position:fixed;inset:0;display:none;flex-direction:column;padding:14px;overflow-y:auto}
   .scr.on{display:flex}
   .win{border:3px solid var(--ink);border-radius:8px;background:var(--panel);padding:14px;box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--line)}
-  h1{font-size:20px;margin:6px 0 14px;text-align:center;letter-spacing:.1em}
-  label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
-  input,textarea{width:100%;background:#0a0c16;color:var(--ink);border:2px solid var(--line);border-radius:6px;padding:10px;font:inherit;font-size:16px}
-  textarea{height:150px;resize:none;line-height:1.5}
-  .btn{display:block;width:100%;margin-top:14px;padding:14px;border:3px solid var(--ink);border-radius:8px;background:#22305e;color:var(--ink);font:inherit;font-size:18px;font-weight:700;letter-spacing:.08em}
+  h1{font-size:20px;margin:4px 0 12px;text-align:center;letter-spacing:.1em}
+  h2{font-size:17px;margin:0 0 10px;text-align:center}
+  .mut{color:var(--mut);font-size:13px;text-align:center;margin:0 0 12px}
+  .btn{display:block;width:100%;margin-top:10px;padding:13px;border:3px solid var(--ink);border-radius:8px;background:#22305e;color:var(--ink);font:inherit;font-size:17px;font-weight:700}
   .btn:active{background:#33468a}
-  .btn.sub{background:transparent;font-size:15px;padding:10px}
-  .ex{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.6}
-  #log{flex:1;overflow-y:auto;padding:12px;font-size:16px;line-height:1.75}
-  #log p{margin:0 0 4px;white-space:pre-wrap}
-  #log .sys{color:var(--gold)}
-  #log .you{color:var(--you)}
-  #log .en{color:var(--en)}
-  #log .dim{color:var(--mut);font-size:14px}
-  #log .big{font-size:20px;font-weight:700;text-align:center;margin:10px 0}
-  #log .rule{border-top:2px dashed var(--line);margin:12px 0}
-  .hp{display:flex;gap:8px;align-items:center;font-size:13px;margin:2px 0}
-  .hp b{width:7em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .btn.sub{background:transparent;font-size:14px;padding:9px;border-width:2px}
+  .btn.gold{background:#5a4513;border-color:var(--gold)}
+  .nums{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+  .nums button{padding:10px 0;border:2px solid var(--line);border-radius:6px;background:#0a0c16;color:var(--ink);font:inherit;font-size:17px;font-weight:700}
+  .nums button.on{background:var(--gold);color:#222;border-color:var(--gold)}
+  .names input{width:100%;margin-top:6px;background:#0a0c16;color:var(--ink);border:2px solid var(--line);border-radius:6px;padding:9px;font:inherit;font-size:16px}
+  .choice{display:block;width:100%;text-align:left;margin-top:8px;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:#0a0c16;color:var(--ink);font:inherit;font-size:18px;font-weight:700}
+  .choice small{display:block;font-size:12px;color:var(--mut);font-weight:400;margin-top:2px}
+  .choice:active{border-color:var(--gold)}
+  .els{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .els .choice{text-align:center;font-size:24px;padding:14px 0}
+  .step{font-size:12px;color:var(--gold);text-align:center;margin-bottom:4px;letter-spacing:.2em}
+  .build{font-size:22px;font-weight:800;text-align:center;margin:16px 0;line-height:1.5}
+  .build small{display:block;font-size:13px;color:var(--mut);font-weight:400}
+  #top{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--mut)}
+  #top span{flex:1}
+  #top button{background:none;border:2px solid var(--line);color:var(--ink);border-radius:6px;font:inherit;padding:4px 10px}
+  #status{min-height:62px}
+  .hp{display:flex;gap:8px;align-items:center;font-size:13px;margin:3px 0}
+  .hp b{width:8.5em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .bar{flex:1;height:10px;border:2px solid var(--ink);border-radius:3px;background:#000;position:relative}
   .bar i{position:absolute;left:0;top:0;bottom:0;background:#4cd964;transition:width .4s}
   .bar.low i{background:#ff3b30}
-  #status{min-height:58px}
-  #next{position:fixed;right:22px;bottom:22px;font-size:22px;animation:b 1s infinite;color:var(--gold);display:none}
-  @keyframes b{50%{opacity:.2}}
-  #top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--mut)}
-  #top button{background:none;border:2px solid var(--line);color:var(--ink);border-radius:6px;font:inherit;padding:4px 10px}
-  .bracket{font-size:13px;line-height:1.8}
-  .bracket .me{color:var(--you)}
-  .bracket .out{color:#555c7a;text-decoration:line-through}
-  #end .win{margin-top:auto;margin-bottom:auto}
-  #endMsg{font-size:15px;line-height:1.8;white-space:pre-wrap}
+  #log{flex:1;overflow-y:auto;font-size:16px;line-height:1.75;margin-top:10px}
+  #log p{margin:0 0 3px;white-space:pre-wrap}
+  #log .sys{color:var(--gold)} #log .a{color:var(--a)} #log .b{color:var(--b)}
+  #log .dim{color:var(--mut);font-size:14px}
+  #log .ev{color:#c7f9a6}
+  #log .big{font-size:20px;font-weight:800;text-align:center;margin:8px 0}
+  #log .rank{font-size:14px;color:var(--gold);border:1px dashed var(--gold);border-radius:6px;padding:4px 8px;margin:4px 0}
+  #log .rule{border-top:2px dashed var(--line);margin:12px 0}
+  #log .br{font-size:13px;line-height:1.8;color:var(--mut)}
+  #next{position:fixed;right:24px;bottom:24px;font-size:22px;animation:bl 1s infinite;color:var(--gold);display:none}
+  @keyframes bl{50%{opacity:.2}}
+  .res{font-size:14px;line-height:1.7}
+  .res div{display:flex;gap:8px;border-bottom:1px solid #222a48;padding:4px 0}
+  .res b{width:2.2em;color:var(--gold);text-align:center}
+  .res span{flex:1}
 </style>
 </head>
 <body>
 
-<!-- 入力画面 -->
-<section class="scr on" id="entry">
+<!-- 人数と名前 -->
+<section class="scr on" id="setup">
   <div class="win" style="margin:auto 0">
     <h1>― 異能トーナメント ―</h1>
-    <label>なまえ</label>
-    <input id="name" maxlength="12" placeholder="あなた">
-    <label>あなたの能力</label>
-    <textarea id="ability" maxlength="200" placeholder="例：触れたものの温度を自由に変えられる。ただし自分の体温も同じだけ変わる。"></textarea>
-    <div class="ex">能力の書き方しだいで、相性や強さが変わります。決勝の相手は桁違いの強さですが、どこかに弱点があります。</div>
-    <button class="btn" id="go">エントリーする</button>
+    <p class="mut">職業 × 属性 × 特殊スキル で能力が決まる。<br>強さは選ぶまで分からない。</p>
+    <h2>プレイヤーの人数</h2>
+    <div class="nums" id="nums"></div>
+    <p class="mut" style="margin-top:8px">足りない枠はCPUが参戦（全8人）</p>
+    <div class="names" id="names"></div>
+    <button class="btn" id="start">能力を選びに行く</button>
   </div>
 </section>
 
-<!-- 試合ログ -->
+<!-- 交代画面 -->
+<section class="scr" id="handoff">
+  <div class="win" style="margin:auto 0">
+    <h2 id="hoName"></h2>
+    <p class="mut">ほかの人は画面を見ないでね</p>
+    <button class="btn gold" id="hoGo">能力を選ぶ</button>
+  </div>
+</section>
+
+<!-- 能力選び -->
+<section class="scr" id="pick">
+  <div class="win" style="margin:auto 0">
+    <div class="step" id="pkStep"></div>
+    <h2 id="pkTitle"></h2>
+    <div id="pkList"></div>
+    <button class="btn sub" id="pkReroll"></button>
+  </div>
+</section>
+
+<!-- 能力の確認 -->
+<section class="scr" id="confirm">
+  <div class="win" style="margin:auto 0">
+    <h2 id="cfName"></h2>
+    <div class="build" id="cfBuild"></div>
+    <p class="mut">強さは試合で明らかになる</p>
+    <button class="btn gold" id="cfNext"></button>
+  </div>
+</section>
+
+<!-- 試合 -->
 <section class="scr" id="battle">
-  <div id="top"><span id="round">一回戦</span><button id="voice">🔇 読み上げ</button><button id="skip">⏩</button></div>
+  <div id="top"><span id="round"></span><button id="voice">🔇 読み上げ</button><button id="skip">⏩</button></div>
   <div class="win" id="status"></div>
-  <div class="win" id="log" style="margin-top:10px"></div>
+  <div class="win" id="log"></div>
   <div id="next">▼</div>
 </section>
 
 <!-- 結果 -->
 <section class="scr" id="end">
-  <div class="win">
+  <div class="win" style="margin:auto 0">
     <h1 id="endTitle"></h1>
-    <div id="endMsg"></div>
-    <button class="btn" id="again">同じ能力でもう一度</button>
-    <button class="btn sub" id="rewrite">能力を書き直す</button>
+    <div class="build" id="endBuild"></div>
+    <h2>全員の能力ランク</h2>
+    <div class="res" id="endList"></div>
+    <button class="btn gold" id="again">同じメンバーで能力を選び直す</button>
+    <button class="btn sub" id="toSetup">人数・名前を変える</button>
   </div>
 </section>
 
+<script src="data.js"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
 const R = () => Math.random();
 const pick = a => a[Math.floor(R() * a.length)];
+const shuffle = a => a.map(x => [R(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function load(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
 function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 
-// ================= 属性（能力の文章から読み取る） =================
-const ELEM = {
-  fire:   {re:/炎|火|燃|熱|爆|焼|マグマ|太陽/, fx:['灼熱の炎が渦を巻く！','あたりの空気が陽炎のように揺らいだ！','火柱が天を衝く！']},
-  ice:    {re:/氷|凍|冷|雪|吹雪|零度/, fx:['空気中の水分が一瞬で凍りついた！','足元から氷の槍がせり上がる！']},
-  water:  {re:/水|海|雨|波|液体|泡/, fx:['濁流がフィールドを呑み込む！','水の刃が弧を描いた！']},
-  thunder:{re:/雷|電|稲妻|スパーク|プラズマ/, fx:['紫電が走る！','轟音とともに落雷が降り注ぐ！']},
-  wind:   {re:/風|嵐|空気|竜巻|気流/, fx:['見えない刃が空を裂く！','突風が砂塵を巻き上げる！']},
-  earth:  {re:/土|岩|石|大地|砂|地面|鉱/, fx:['大地が隆起し壁となる！','岩塊が雨のように降る！']},
-  light:  {re:/光|聖|天使|輝|レーザー/, fx:['まばゆい光が視界を白く塗りつぶす！','光の矢が一直線に走る！']},
-  dark:   {re:/闇|影|夜|呪|黒|死/, fx:['影が地面を這い、足首を掴む！','闇が観客席の照明すら呑み込んだ！']},
-  time:   {re:/時間|時を|未来|過去|停止|巻き戻|加速|一秒/, fx:['時計の針が一瞬だけ逆に回った！','世界の動きが、コマ送りのように遅くなる！']},
-  space:  {re:/空間|瞬間移動|ワープ|転移|テレポート|距離|次元/, fx:['空間がぐにゃりと歪む！','気づけば背後に回り込んでいる！']},
-  mind:   {re:/心|精神|記憶|夢|幻|催眠|洗脳|感情|思考/, fx:['相手の目から一瞬、光が消えた！','幻覚が相手を取り囲む！']},
-  gravity:{re:/重力|引力|重さ|重く|軽く/, fx:['見えない重圧が相手を地面に縫いつける！','瓦礫がふわりと浮き上がった！']},
-  poison: {re:/毒|病|腐|菌|ウイルス/, fx:['紫の霧が静かに広がる……','じわじわと相手の体力を蝕む！']},
-  body:   {re:/筋肉|肉体|怪力|拳|剣|刀|格闘|蹴|硬|鋼|鉄/, fx:['重い一撃が空気ごと殴り抜ける！','鋼のような肉体が攻撃を弾き返す！']},
-  copy:   {re:/コピー|複製|模倣|真似|写/, fx:['相手の構えをそっくりそのまま写し取った！']},
-  heal:   {re:/治|癒|回復|再生|蘇/, fx:['傷口がみるみる塞がっていく！']},
-  luck:   {re:/運|確率|偶然|ランダム|サイコロ|くじ|気まぐれ/, fx:['なぜか相手の足元にバナナの皮が！','偶然、落ちてきた看板が相手を直撃した！']},
-};
-// 有利な相性（左が右に強い）
-const BEATS = {fire:['ice','wind','poison'], ice:['water','wind'], water:['fire','earth'], thunder:['water','body'], wind:['earth','poison'],
-  earth:['thunder','fire'], light:['dark','mind'], dark:['light','heal'], time:['space','body'], space:['mind','body'],
-  mind:['time','copy'], gravity:['wind','space'], poison:['body','heal'], body:['earth','copy'], copy:['luck'], heal:['poison'], luck:['time']};
-const GENERIC_FX = ['能力が唸りを上げる！','誰も見たことのない現象がフィールドを包む！','観客席がどよめいた！'];
+// ---- データを扱いやすい形に ----
+const JOB = JOBS.map(([id, n, p, tags, lines]) => ({id, n, p, tags, lines}));
+const SKILL = SKILLS.map(([id, n, d, p, tags, lines]) => ({id, n, d, p, tags, lines}));
+const EL = Object.fromEntries(ELEMENTS.map(e => [e.id, e]));
+const CPU_NAMES = ['タナカ','スズキ','ミドリ','ゴンザレス','ハナコ','ケンジ','モモ','ジロー','サクラ','リュウ','ポチ','カオル','ヨシオ','マリア'];
 
-function analyze(text){
-  const els = Object.keys(ELEM).filter(k => ELEM[k].re.test(text));
-  // 能力名：最初の句点まで、長ければ短く
-  let name = text.split(/[。．.\n]/)[0].trim();
-  if (name.length > 18) name = name.slice(0, 17) + '…';
-  const brag = (text.match(/無敵|最強|絶対|無限|全能|神|究極|最高/g) || []).length;
-  const power = Math.min(86, 48 + Math.min(22, text.length / 4) + els.length * 4 + brag * 2);
-  return {els, abilityName: name || '名もなき力', power, brag};
+function makeFighter(name, human, job, el, skill){
+  const keys = new Set(['j.' + job.id, 's.' + skill.id, 'e.' + el, ...job.tags.map(t => 't.' + t), ...skill.tags.map(t => 't.' + t)]);
+  return {n: name, human, job, el, skill, keys, power: job.p + skill.p, label: `${EL[el].n}の${job.n}`, revealed: false};
 }
+function rankOf(p){ return p >= 85 ? 'S' : p >= 70 ? 'A' : p >= 52 ? 'B' : p >= 35 ? 'C' : p >= 20 ? 'D' : 'E'; }
+const RANK_TXT = {S:'S（超当たり！）', A:'A（当たり）', B:'B（なかなか）', C:'C（ふつう）', D:'D（いまいち）', E:'E（超ハズレ……）'};
 
-// ================= 出場者 =================
-const TIER1 = [
-  {n:'マッチ坊や', a:'指先から小さな火花を出す', els:['fire']},
-  {n:'チラ見のカナ', a:'1秒だけ先の未来が見える', els:['time']},
-  {n:'ふにゃ田', a:'触れた物を少しだけ柔らかくする', els:['body']},
-  {n:'鳩ノ宮', a:'ハトと会話し、群れを呼ぶ', els:['wind']},
-  {n:'ねむりの羊子', a:'あくびを伝染させて眠気を誘う', els:['mind']},
-  {n:'静電気マン', a:'握手した相手にバチッとくる', els:['thunder']},
-  {n:'泥団子の泥沼', a:'どこからでも泥団子を取り出せる', els:['earth']},
-];
-const TIER2 = [
-  {n:'影縫いのクロエ', a:'影に潜り、背後から影を縫い止める', els:['dark']},
-  {n:'迅雷のレイ', a:'雷を纏い、目にも止まらぬ速さで動く', els:['thunder']},
-  {n:'圧殺のゴウ', a:'周囲の重力を十倍にする', els:['gravity']},
-  {n:'ワスレナ', a:'触れた相手の記憶をひとつ奪う', els:['mind']},
-  {n:'鉄壁のガンテツ', a:'全身を鋼鉄に変える', els:['body']},
-  {n:'氷華のセツナ', a:'視線の先を凍りつかせる', els:['ice']},
-  {n:'転移屋ミナト', a:'見えている場所へ瞬時に移動する', els:['space']},
-];
-// 決勝のボス：圧倒的。ただし弱点がある
-const BOSSES = [
-  { n:'因果王クロノス＝ゼロ', a:'結果を先に決める。攻撃は当たる前に「当たらなかった」ことになる', els:['time'],
-    weak:/運|確率|偶然|ランダム|サイコロ|くじ|気まぐれ|無意識|でたらめ|予測できない|適当/,
-    weakDesc:'先に決められない「偶然」',
-    hints:['「クロノスの奴、サイコロだけは絶対に振らないらしいぜ」','「あいつが一度だけ焦った試合がある。相手は、自分でも次に何をするか分からない男だった」'],
-    show:['クロノス＝ゼロは指を鳴らした。','――相手の攻撃は「最初から放たれなかった」ことになった。','相手は、気づけば場外に倒れていた。'],
-    dodge:['しかし攻撃は「当たらなかった」ことになった。','放ったはずの技が、なかったことになっている……！','クロノス＝ゼロ「その結末は、もう決まっている」'],
-    fall:['クロノス＝ゼロ「……読めない。なぜ、読めない！？」','決めたはずの結果が、偶然という名の波に呑まれていく！'] },
-  { n:'鏡像のミラージュ', a:'相手の能力を完全に写し取り、倍の力で返す', els:['copy'],
-    weak:/弱|ダメ|失敗|反動|自滅|自分も|呪い|代償|何もできない|役に立たない|しょぼい|ドジ|不運/,
-    weakDesc:'写したら自分が損をする「代償つきの力」',
-    hints:['「ミラージュは写した能力の“悪いところ”まで倍になるって聞いたぞ」','「前の大会、あいつは“何の役にも立たない能力”の子どもにだけ負けかけたんだ」'],
-    show:['ミラージュの瞳に、相手の姿がそっくり映り込む。','――相手の能力が、倍の威力で相手自身に跳ね返った。','勝負は一瞬だった。'],
-    dodge:['ミラージュはその能力を写し取り、倍にして返した！','自分の技が、倍になって襲いかかってくる……！','ミラージュ「あなたの力は、私のほうがうまく使える」'],
-    fall:['ミラージュ「……写した力が、私を蝕んでいる……！？」','倍になった“代償”が、ミラージュ自身に降りかかる！'] },
-  { n:'絶対零度の女帝ニヴル', a:'あらゆるものを凍らせる。時間の流れすら凍てつく', els:['ice','time'],
-    weak:/心|愛|歌|笑|温|優し|友|感情|涙|ぬくもり|抱|家族|思い出|子守/,
-    weakDesc:'凍らせられない「心のぬくもり」',
-    hints:['「女帝ニヴルは子守唄を聞くと手が止まるって噂だ」','「氷は氷でも、心までは凍らせられないって、昔の大会で誰かが言ってたな」'],
-    show:['ニヴルが吐息をひとつ。','――会場ごと、時間ごと、相手は凍りついた。','観客の歓声すら凍って、床に落ちて砕けた。'],
-    dodge:['攻撃は届く前に凍りつき、砕け散った。','時間が凍っている。体が、動かない……！','ニヴル「永遠に、そこで止まっていなさい」'],
-    fall:['ニヴル「……あたたかい……？　なぜ、凍らない……」','女帝の氷が、内側から静かに溶けていく！'] },
-];
+// ================= セットアップ =================
+let setup = load('setup', {count: 1, names: []});
+function renderSetup(){
+  $('nums').innerHTML = '';
+  for (let i = 1; i <= 8; i++){
+    const b = document.createElement('button'); b.textContent = i; b.className = i === setup.count ? 'on' : '';
+    b.onclick = () => { readNames(); setup.count = i; renderSetup(); };
+    $('nums').appendChild(b);
+  }
+  $('names').innerHTML = '';
+  for (let i = 0; i < setup.count; i++){
+    const inp = document.createElement('input'); inp.maxLength = 10;
+    inp.placeholder = `プレイヤー${i + 1}の名前`; inp.value = setup.names[i] || '';
+    $('names').appendChild(inp);
+  }
+}
+function readNames(){ [...$('names').querySelectorAll('input')].forEach((x, i) => setup.names[i] = x.value.trim()); }
+renderSetup();
+
+let players = [], pi = 0, used = {job: new Set(), skill: new Set()};
+$('start').onclick = () => {
+  readNames(); save('setup', setup);
+  players = Array.from({length: setup.count}, (_, i) => ({n: setup.names[i] || `プレイヤー${i + 1}`}));
+  pi = 0; used = {job: new Set(), skill: new Set()};
+  startPick();
+};
+
+// ================= 能力選び =================
+let cur = null;
+function startPick(){
+  if (pi >= players.length){ runTournament(); return; }
+  cur = {p: players[pi], reroll: 1, step: 0};
+  $('hoName').textContent = `${cur.p.n} の番です`;
+  show('handoff');
+}
+$('hoGo').onclick = () => { cur.opts = drawJobs(); renderPick(); show('pick'); };
+function drawJobs(){ return shuffle(JOB.filter(j => !used.job.has(j.id))).slice(0, 4); }
+function drawSkills(){ return shuffle(SKILL.filter(s => !used.skill.has(s.id))).slice(0, 4); }
+function renderPick(){
+  const L = $('pkList'); L.innerHTML = ''; L.className = '';
+  $('pkReroll').style.display = 'none';
+  if (cur.step === 0){
+    $('pkStep').textContent = 'STEP 1 / 3'; $('pkTitle').textContent = '職業をえらべ';
+    cur.opts.forEach(j => L.appendChild(choice(j.n, '', () => { cur.job = j; cur.step = 1; renderPick(); })));
+    rerollBtn(() => { cur.opts = drawJobs(); });
+  } else if (cur.step === 1){
+    $('pkStep').textContent = 'STEP 2 / 3'; $('pkTitle').textContent = '属性をえらべ';
+    L.className = 'els';
+    ELEMENTS.forEach(e => L.appendChild(choice(e.n, '', () => { cur.el = e.id; cur.step = 2; cur.opts = drawSkills(); renderPick(); })));
+  } else {
+    $('pkStep').textContent = 'STEP 3 / 3'; $('pkTitle').textContent = '特殊スキルをえらべ';
+    cur.opts.forEach(s => L.appendChild(choice(s.n, s.d, () => { cur.skill = s; finishPick(); })));
+    rerollBtn(() => { cur.opts = drawSkills(); });
+  }
+}
+function rerollBtn(fn){
+  if (cur.reroll <= 0) return;
+  const b = $('pkReroll'); b.style.display = 'block';
+  b.textContent = `引き直す（あと${cur.reroll}回）`;
+  b.onclick = () => { cur.reroll--; fn(); renderPick(); };
+}
+function choice(t, sub, fn){
+  const b = document.createElement('button'); b.className = 'choice';
+  b.innerHTML = t + (sub ? `<small>${sub}</small>` : ''); b.onclick = fn; return b;
+}
+function finishPick(){
+  used.job.add(cur.job.id); used.skill.add(cur.skill.id);
+  const f = makeFighter(cur.p.n, true, cur.job, cur.el, cur.skill);
+  players[pi].f = f;
+  $('cfName').textContent = `${cur.p.n} の能力`;
+  $('cfBuild').innerHTML = `${f.label}<br>× ${f.skill.n}<small>${f.skill.d}</small>`;
+  $('cfNext').textContent = pi + 1 < players.length ? '次の人に渡す' : 'トーナメント開始！';
+  show('confirm');
+}
+$('cfNext').onclick = () => { pi++; startPick(); };
 
 // ================= ログ表示・読み上げ =================
-let speak = load('voice', false);
-let fast = false;
+let speak = load('voice', false), fast = false;
 const log = $('log');
 function setVoiceBtn(){ $('voice').textContent = speak ? '🔊 読み上げ' : '🔇 読み上げ'; }
 setVoiceBtn();
-$('voice').onclick = () => { speak = !speak; save('voice', speak); setVoiceBtn(); if (!speak) stopSpeak(); };
-$('skip').onclick = () => { fast = !fast; $('skip').style.color = fast ? 'var(--gold)' : ''; };
-
+$('voice').onclick = e => { e.stopPropagation(); speak = !speak; save('voice', speak); setVoiceBtn(); if (!speak) stopSpeak(); };
+$('skip').onclick = e => { e.stopPropagation(); fast = !fast; $('skip').style.color = fast ? 'var(--gold)' : ''; if (fast) stopSpeak(); };
 function stopSpeak(){ try{ window.Android ? Android.stop() : speechSynthesis.cancel(); }catch(e){} }
 function say(text){
   return new Promise(res => {
-    const t = text.replace(/[『』「」【】▶︎]/g, '');
+    const t = text.replace(/[『』「」【】▶︎―…]/g, ' ');
     try{
       if (window.Android){ window.__said = res; Android.speak(t); return; }
-      if (window.speechSynthesis){
-        const u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 1.1;
-        u.onend = res; u.onerror = res; speechSynthesis.speak(u); return;
-      }
+      if (window.speechSynthesis){ const u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 1.1; u.onend = res; u.onerror = res; speechSynthesis.speak(u); return; }
     }catch(e){}
     res();
   });
 }
 window.onNativeSaid = () => { const r = window.__said; window.__said = null; r && r(); };
 
-async function line(text, cls = '', wait = 650){
+async function line(text, cls = '', wait = 700){
   const p = document.createElement('p'); p.className = cls; log.appendChild(p);
-  if (fast){ p.textContent = text; log.scrollTop = log.scrollHeight; await sleep(60); return; }
-  for (let i = 1; i <= text.length; i++){ p.textContent = text.slice(0, i); if (i % 2 === 0) await sleep(16); }
-  log.scrollTop = log.scrollHeight;
-  if (speak && cls !== 'dim') await Promise.race([say(text), sleep(9000)]); else await sleep(wait);
+  if (fast){ p.textContent = text; log.scrollTop = log.scrollHeight; await sleep(40); return; }
+  for (let i = 1; i <= text.length; i++){ p.textContent = text.slice(0, i); if (i % 2 === 0) await sleep(18); log.scrollTop = log.scrollHeight; }
+  if (speak && cls !== 'dim') await Promise.race([say(text), sleep(10000)]); else await sleep(wait);
 }
-function rule(){ const d = document.createElement('div'); d.className = 'rule'; log.appendChild(d); }
+function html(h, cls){ const d = document.createElement('div'); d.className = cls; d.innerHTML = h; log.appendChild(d); log.scrollTop = log.scrollHeight; }
 function tapToContinue(){
-  if (fast) return sleep(200);
+  if (fast) return sleep(250);
   $('next').style.display = 'block';
   return new Promise(res => {
     const h = () => { $('battle').removeEventListener('click', h); $('next').style.display = 'none'; res(); };
-    setTimeout(() => $('battle').addEventListener('click', h), 150);
+    setTimeout(() => $('battle').addEventListener('click', h), 200);
   });
 }
 function status(a, b){
-  const row = f => `<div class="hp"><b class="${f.me ? 'you' : ''}">${f.n}</b><div class="bar ${f.hp < 30 ? 'low' : ''}"><i style="width:${Math.max(0, f.hp)}%"></i></div><span>${Math.max(0, Math.round(f.hp))}</span></div>`;
-  $('status').innerHTML = a ? row(a) + row(b) : '';
+  const row = (f, c) => `<div class="hp"><b style="color:var(--${c})">${f.n}</b><div class="bar ${f.hp < 30 ? 'low' : ''}"><i style="width:${Math.max(0, f.hp)}%"></i></div><span>${Math.max(0, Math.round(f.hp))}</span></div>`;
+  $('status').innerHTML = a ? row(a, 'a') + row(b, 'b') : '';
 }
+const fill = (s, A, B) => s.replace(/\{A\}/g, A.n).replace(/\{B\}/g, B.n);
 
 // ================= 戦闘 =================
-function edge(a, b){ // aがbに有利なら>1
+// 属性（炎>風>土>雷>水>炎）と、職業・スキルのタグ相性
+function advantage(a, b){
   let m = 1;
-  a.els.forEach(x => b.els.forEach(y => { if ((BEATS[x] || []).includes(y)) m *= 1.25; if ((BEATS[y] || []).includes(x)) m *= 0.8; }));
-  return m;
+  if (EL_BEATS[a.el] === b.el) m *= 1.35;
+  if (EL_BEATS[b.el] === a.el) m /= 1.35;
+  let t = 1;
+  const at = [...a.job.tags, ...a.skill.tags], bt = [...b.job.tags, ...b.skill.tags];
+  at.forEach(x => bt.forEach(y => { if ((TAG_BEATS[x] || []).includes(y)) t *= 1.12; if ((TAG_BEATS[y] || []).includes(x)) t /= 1.12; }));
+  return m * Math.max(.7, Math.min(1.45, t));
 }
-function fxOf(f){ const e = f.els.filter(k => ELEM[k]); return e.length ? pick(ELEM[pick(e)].fx) : pick(GENERIC_FX); }
-function cls(f){ return f.me ? 'you' : 'en'; }
+function findEvent(a, b){
+  for (const ev of shuffle(EVENTS)){
+    if (!ev.t.length) continue;
+    const hitAB = a.keys.has(ev.a) && b.keys.has(ev.b), hitBA = b.keys.has(ev.a) && a.keys.has(ev.b);
+    if (!hitAB && !hitBA) continue;
+    if (ev.p != null && R() > ev.p) continue;
+    return hitAB ? {ev, A: a, B: b} : {ev, A: b, B: a};
+  }
+  return null;
+}
+function attackLine(atk, def){
+  const r = R();
+  if (atk.skill.p >= 6 && r < .32) return {t: fill(pick(atk.skill.lines), atk, def)};
+  if (atk.skill.p < 6 && r < .15) return {t: fill(pick(atk.skill.lines), atk, def), weak: true};
+  return {t: fill(pick(atk.job.lines), atk, def)};
+}
+async function reveal(f){
+  if (f.revealed) return;
+  f.revealed = true;
+  html(`【鑑定】${f.n}：${f.label} × ${f.skill.n}<br>能力ランク　${RANK_TXT[rankOf(f.power)]}`, 'rank');
+  await sleep(fast ? 40 : 1000);
+}
 
-// 勝者を先に決め、それに合わせて手に汗にぎる流れを作る
-async function fight(a, b, opts = {}){
+async function fight(a, b){
   a.hp = 100; b.hp = 100; status(a, b);
-  const pa = Math.pow(a.power, 3) * edge(a, b), pb = Math.pow(b.power, 3) * edge(b, a);
-  const aWins = opts.force != null ? opts.force : R() < pa / (pa + pb);
-  const W = aWins ? a : b, Lz = aWins ? b : a;
-  const turns = 3 + Math.floor(R() * 3);
-  const loserDeal = 35 + R() * 55;      // 負ける側が与えるダメージ合計
-  const close = loserDeal > 70;
-  let first = R() < .5 ? a : b;
+  await line(`${a.n}（${a.label}）　vs　${b.n}（${b.label}）`, 'sys');
+  await reveal(a); await reveal(b);
+  if (EL_BEATS[a.el] === b.el) await line(`属性は ${EL[a.el].n} が ${EL[b.el].n} に有利！`, 'dim');
+  else if (EL_BEATS[b.el] === a.el) await line(`属性は ${EL[b.el].n} が ${EL[a.el].n} に有利！`, 'dim');
+
+  const found = findEvent(a, b);
+  const decisive = found && found.ev.win;
+  let W;
+  if (decisive) W = found.ev.win === 'a' ? found.A : found.B;
+  else {
+    const pa = Math.pow(a.power, 2.2) * advantage(a, b), pb = Math.pow(b.power, 2.2);
+    W = R() < pa / (pa + pb) ? a : b;
+  }
+  const Lz = W === a ? b : a;
+  const C = f => f === a ? 'a' : 'b';
+
+  // 勝敗を決めるイベントは、少しやり合ってから発生する
+  const turns = decisive ? 1 + Math.floor(R() * 2) : 3 + Math.floor(R() * 3);
+  const first = R() < .5 ? a : b;
+  const loserTotal = 35 + R() * 55;
   for (let t = 0; t < turns * 2; t++){
-    const atk = (t % 2 === 0) ? first : (first === a ? b : a);
-    const def = atk === a ? b : a;
-    const last = t >= turns * 2 - 2 && atk === W;
+    const atk = t % 2 === 0 ? first : (first === a ? b : a), def = atk === a ? b : a;
+    const finishing = !decisive && atk === W && t >= turns * 2 - 2;
     let dmg;
-    if (atk === W) dmg = last ? def.hp : Math.min(def.hp - 5, 100 / turns * (0.7 + R() * .5));
-    else dmg = Math.min(atk === Lz ? loserDeal / turns * (0.6 + R() * .8) : 0, def.hp - 8);
+    if (decisive) dmg = 6 + R() * 12;
+    else if (atk === W) dmg = finishing ? def.hp : Math.min(def.hp - 5, 100 / turns * (.7 + R() * .5));
+    else dmg = Math.min(loserTotal / turns * (.6 + R() * .8), def.hp - 8);
     dmg = Math.max(0, Math.round(dmg));
-    if (atk === Lz && dmg <= 0 && t > 1) continue;
-    await line(`▶ ${atk.n}の『${atk.abilityName || atk.a}』！`, cls(atk));
-    await line(fxOf(atk), 'dim', 450);
-    const crit = dmg > 30 && R() < .5;
-    if (crit) await line('会心の一撃！', 'sys', 400);
+    const al = attackLine(atk, def);
+    await line('▶ ' + al.t, C(atk));
+    if (al.weak) dmg = Math.min(dmg, 1 + Math.floor(R() * 3));
+    else await line(pick(EL[atk.el].fx), 'dim', 450);
+    if (dmg > 30 && R() < .5) await line('会心の一撃！', 'sys', 400);
     def.hp -= dmg; status(a, b);
-    await line(`${def.n}に ${dmg} のダメージ！`, cls(def), 500);
+    await line(dmg > 0 ? `${def.n}に ${dmg} のダメージ！` : `${def.n}には、まったく効いていない……`, C(def), 450);
     if (def.hp <= 0) break;
-    if (def === W && def.hp < 25 && close) await line(`${def.n}、ピンチだ……！`, 'sys', 500);
-    if (last){ /* 決着 */ }
+    if (!found && def === W && def.hp < 25) await line(`${def.n}、ピンチだ……！`, 'sys', 450);
+    // 演出だけのイベントは途中に挟む
+    if (found && !decisive && t === 1){
+      html('', 'rule');
+      for (const s of found.ev.t) await line(fill(s, found.A, found.B), 'ev');
+      html('', 'rule');
+    }
+  }
+  if (decisive){
+    html('', 'rule');
+    await line('――そのとき、思いもよらないことが起きた。', 'sys');
+    for (const s of found.ev.t) await line(fill(s, found.A, found.B), 'ev');
+    html('', 'rule');
   }
   if (Lz.hp > 0){ Lz.hp = 0; status(a, b); }
-  await line(`${Lz.n}は たおれた。`, cls(Lz));
+  await line(`${Lz.n}は たおれた。`, C(Lz));
   await line(`${W.n}の勝利！`, 'big');
   return W;
 }
 
-// 他ブロックの試合は短く
-async function quick(a, b){
-  const pa = Math.pow(a.power, 2.2) * edge(a, b), pb = Math.pow(b.power, 2.2) * edge(b, a);
-  const W = (a.boss || (!b.boss && R() < pa / (pa + pb))) ? a : b, Lz = W === a ? b : a;
-  if (W.boss){
-    await line(`【${a.n} vs ${b.n}】`, 'dim', 300);
-    for (const s of W.show) await line(s, 'en', 500);
-    await line(`→ ${W.n} 勝利（試合時間 3秒）`, 'sys', 400);
-  } else {
-    await line(`【${a.n} vs ${b.n}】`, 'dim', 300);
-    await line(`${W.n}の『${W.a}』が、${Lz.n}を押し切った。`, 'dim', 400);
-    await line(`→ ${W.n} 勝利`, 'sys', 400);
+// ================= トーナメント =================
+async function runTournament(){
+  let entrants = players.map(p => p.f);
+  const names = shuffle(CPU_NAMES);
+  while (entrants.length < 8){
+    const job = pick(JOB.filter(j => !used.job.has(j.id))), skill = pick(SKILL.filter(s => !used.skill.has(s.id)));
+    used.job.add(job.id); used.skill.add(skill.id);
+    entrants.push(makeFighter('CPU ' + names.pop(), false, job, pick(ELEMENTS).id, skill));
   }
-  return W;
-}
-
-async function bossFight(me, boss){
-  me.hp = 100; boss.hp = 100; status(me, boss);
-  const hasKey = boss.weak.test(me.text);
-  const miracle = !hasKey && R() < 0.03;
-  await line(`${boss.n}「ここまで来たか。だが、ここで終わりだ」`, 'en');
-  if (me.brag) await line(`${boss.n}「“${(me.text.match(/無敵|最強|絶対|無限|全能|神|究極|最高/) || ['最強'])[0]}”？　言葉だけでは、私には届かない」`, 'en');
-  for (let t = 0; t < 2; t++){
-    await line(`▶ ${me.n}の『${me.abilityName}』！`, 'you');
-    await line(fxOf(me), 'dim', 450);
-    await line(pick(boss.dodge), 'en');
-    const d = 20 + Math.round(R() * 12); me.hp -= d; status(me, boss);
-    await line(`${boss.n}の反撃！ ${me.n}に ${d} のダメージ！`, 'en', 500);
-  }
-  if (hasKey || miracle){
-    await line(`${me.n}はふらつきながらも、もう一度『${me.abilityName}』を発動した――`, 'you');
-    await line('……！？', 'sys');
-    for (const s of boss.fall) await line(s, 'en');
-    for (const d of [34, 33]){ boss.hp -= d; status(me, boss); await line(`${boss.n}に ${d} のダメージ！`, 'en', 500); }
-    await line(`▶ ${me.n}の『${me.abilityName}』！ 渾身の一撃！`, 'you');
-    boss.hp = 0; status(me, boss);
-    await line(`${boss.n}は たおれた。`, 'en');
-    await line(`${me.n}の勝利！`, 'big');
-    return {win: true, miracle};
-  }
-  await line(`${me.n}の攻撃は、何ひとつ届かない。`, 'dim');
-  await line(`${boss.n}「終わりだ」`, 'en');
-  me.hp = 0; status(me, boss);
-  await line(`${me.n}は たおれた。`, 'you');
-  await line(`${boss.n}の勝利！`, 'big');
-  return {win: false};
-}
-
-// ================= トーナメント進行 =================
-let last = null;
-async function tournament(name, text){
+  entrants = shuffle(entrants);
   fast = false; $('skip').style.color = '';
-  log.innerHTML = ''; status();
-  show('battle');
-  const an = analyze(text);
-  const me = {n: name, me: true, text, ...an};
-  const sh = a => a.map(x => [R(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
-  const t1 = sh(TIER1), t2 = sh(TIER2);
-  const mk = (o, p) => ({n: o.n, a: o.a, els: o.els, power: p, abilityName: o.a});
-  const boss = Object.assign({}, pick(BOSSES)); boss.power = 999; boss.boss = true; boss.abilityName = boss.a;
-  // 組み合わせ：右ブロックにボス
-  const slots = [me, mk(t1[0], 28 + R() * 10),            // 1回戦：弱い相手
-                 mk(t2[0], 62 + R() * 8), mk(t1[1], 40 + R() * 8),
-                 boss, mk(t1[2], 40 + R() * 8),
-                 mk(t2[1], 66 + R() * 8), mk(t2[2], 64 + R() * 8)];
+  log.innerHTML = ''; status(); show('battle');
+  $('round').textContent = '組み合わせ';
   await line('―――― 異能トーナメント 開幕 ――――', 'sys');
-  await line('出場者8名。最後に立っていた者だけが、勝者だ。', '');
-  const br = document.createElement('div'); br.className = 'bracket';
-  br.innerHTML = [0, 2, 4, 6].map(i => `<div>・<span class="${slots[i].me ? 'me' : ''}">${slots[i].n}</span> vs ${slots[i+1].n}</div>`).join('');
-  log.appendChild(br);
-  await line(`あなたの能力：『${me.abilityName}』`, 'you');
-  if (me.els.length) await line(`（読み取った属性：${me.els.map(e => ({fire:'炎',ice:'氷',water:'水',thunder:'雷',wind:'風',earth:'大地',light:'光',dark:'闇',time:'時間',space:'空間',mind:'精神',gravity:'重力',poison:'毒',body:'肉体',copy:'模倣',heal:'治癒',luck:'運'}[e])).join('・')}）`, 'dim');
+  html(entrants.map((f, i) => (i % 2 === 0 ? '・' : '　vs　') + `${f.n}<span style="opacity:.7">（${f.label}）</span>` + (i % 2 ? '<br>' : '')).join(''), 'br');
   await tapToContinue();
 
-  // ---- 一回戦 ----
-  $('round').textContent = '一回戦'; rule();
-  await line('【一回戦】', 'sys');
-  await line(`${slots[1].n}：「${slots[1].a}能力だ！　かかってこい！」`, 'en');
-  let w = await fight(me, slots[1]);
-  if (w !== me) return finish(false, me, boss, '一回戦');
-  await tapToContinue(); rule();
-  await line('◆ ほかの試合', 'sys');
-  const q2 = await quick(slots[2], slots[3]);
-  const q3 = await quick(slots[4], slots[5]);
-  const q4 = await quick(slots[6], slots[7]);
-  await line(`観客「${boss.hints[0]}」`, 'dim', 900);
-  await tapToContinue();
-
-  // ---- 準決勝 ----
-  $('round').textContent = '準決勝'; rule(); status();
-  await line('【準決勝】', 'sys');
-  await line(`${q2.n}：「${q2.a}。悪いが、ここで止める」`, 'en');
-  w = await fight(me, q2);
-  if (w !== me) return finish(false, me, boss, '準決勝');
-  await tapToContinue(); rule();
-  await line('◆ もう一つの準決勝', 'sys');
-  await quick(q3, q4);
-  await line(`観客「${boss.hints[1]}」`, 'dim', 900);
-  await tapToContinue();
-
-  // ---- 決勝 ----
-  $('round').textContent = '決勝'; rule(); status();
-  await line('【決勝】', 'sys');
-  await line(`${boss.n}――能力『${boss.a}』。`, 'en');
-  await line('会場が、しんと静まり返った。', 'dim');
-  const r = await bossFight(me, boss);
-  return finish(r.win, me, boss, '決勝', r.miracle);
-}
-
-async function finish(win, me, boss, where, miracle){
-  await tapToContinue();
-  stopSpeak();
-  if (win){
-    const wins = load('wins', []); wins.push({boss: boss.n, at: Date.now()}); save('wins', wins);
-    $('endTitle').textContent = '🏆 優勝 🏆';
-    $('endMsg').textContent = miracle
-      ? `奇跡が起きた。\n${boss.n}を、偶然の一撃が打ち倒した。\n\n…ただし本当の弱点は「${boss.weakDesc}」だったようだ。`
-      : `${me.n}は、${boss.n}を打ち倒した！\n\n見抜いた弱点：${boss.weakDesc}\n\nこれまでに倒したボス：${[...new Set(load('wins', []).map(w => w.boss))].length} / ${BOSSES.length}`;
-  } else {
-    $('endTitle').textContent = where === '決勝' ? '準優勝' : `${where}敗退`;
-    $('endMsg').textContent = where === '決勝'
-      ? `${boss.n}には、何ひとつ届かなかった。\n\n観客のうわさを思い出してみよう。\n${boss.hints.map(h => '・' + h).join('\n')}\n\n※決勝の相手は毎回3人の中から選ばれる`
-      : `${me.n}は${where}で敗れた。\n能力の書き方を変えると、強さや相性が変わる。`;
+  const rounds = ['一回戦', '準決勝', '決勝'];
+  let alive = entrants;
+  for (let r = 0; r < 3; r++){
+    const next = [];
+    for (let m = 0; m < alive.length; m += 2){
+      const label = alive.length > 2 ? `${rounds[r]}　第${m / 2 + 1}試合` : rounds[r];
+      $('round').textContent = label;
+      log.innerHTML = ''; status();
+      await line(`【${label}】`, 'sys');
+      next.push(await fight(alive[m], alive[m + 1]));
+      await tapToContinue();
+    }
+    alive = next;
   }
+  stopSpeak();
+  const champ = alive[0];
+  $('endTitle').textContent = `🏆 優勝：${champ.n} 🏆`;
+  $('endBuild').innerHTML = `${champ.label}<br>× ${champ.skill.n}<small>能力ランク ${rankOf(champ.power)}</small>`;
+  $('endList').innerHTML = [...entrants].sort((x, y) => y.power - x.power)
+    .map(f => `<div><b>${rankOf(f.power)}</b><span>${f.n}：${f.label} × ${f.skill.n}</span></div>`).join('');
   show('end');
 }
+$('again').onclick = () => $('start').click();
+$('toSetup').onclick = () => { renderSetup(); show('setup'); };
 
 function show(id){ document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
-
-const saved = load('entry', {name: '', ability: ''});
-$('name').value = saved.name; $('ability').value = saved.ability;
-$('go').onclick = () => {
-  const name = $('name').value.trim() || 'あなた';
-  const text = $('ability').value.trim();
-  if (text.length < 4){ $('ability').focus(); $('ability').placeholder = '能力を書いてください（4文字以上）'; return; }
-  save('entry', {name, ability: text});
-  last = {name, text};
-  tournament(name, text);
-};
-$('again').onclick = () => last && tournament(last.name, last.text);
-$('rewrite').onclick = () => { stopSpeak(); show('entry'); };
 </script>
 </body>
 </html>
