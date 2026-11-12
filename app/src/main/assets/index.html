@@ -36,7 +36,7 @@
   #status{min-height:62px}
   .hp{display:flex;gap:8px;align-items:center;font-size:13px;margin:3px 0}
   .hp{font-size:15px}
-  .hp b{width:8.5em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .hp b{width:10em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
   .bar{flex:1;height:10px;border:2px solid var(--ink);border-radius:3px;background:#000;position:relative}
   .bar i{position:absolute;left:0;top:0;bottom:0;background:#4cd964;transition:width .4s}
   .bar.low i{background:#ff3b30}
@@ -244,7 +244,9 @@ $('skip').onclick = e => { e.stopPropagation(); fast = !fast; $('skip').style.co
 function stopSpeak(){ try{ window.Android ? Android.stop() : speechSynthesis.cancel(); }catch(e){} }
 function say(text){
   return new Promise(res => {
-    const t = text.replace(/[『』「」【】▶︎―…]/g, ' ');
+    // 「実況」「解説」や話している人の名前、行頭の▶・「名前：」は読まない
+    let t = text.replace(/^▶\s*/, '').replace(/^[^「」：\n]{1,20}：/, '').replace(/^[^「」\n]{1,20}?(?=「)/, '');
+    t = t.replace(/[『』「」【】▶︎―…]/g, ' ');
     try{
       if (window.Android){ window.__said = res; Android.speak(t); return; }
       if (window.speechSynthesis){ const u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 1.1; u.onend = res; u.onerror = res; speechSynthesis.speak(u); return; }
@@ -270,7 +272,8 @@ function tapToContinue(){
   });
 }
 function status(a, b){
-  const row = (f, c) => `<div class="hp"><b style="color:var(--${c})">${f.n}</b><div class="bar ${f.hp < 30 ? 'low' : ''}"><i style="width:${Math.max(0, f.hp)}%"></i></div><span>${Math.max(0, Math.round(f.hp))}</span></div>`;
+  // 上部は名前ではなく「炎のラーメン屋」のような能力の概要（プレイヤーは名前も小さく）
+  const row = (f, c) => `<div class="hp"><b style="color:var(--${c})">${f.label}${f.human ? `<small style="display:block;font-size:11px;opacity:.8;font-weight:400">${f.n}</small>` : ''}</b><div class="bar ${f.hp < 30 ? 'low' : ''}"><i style="width:${Math.max(0, f.hp)}%"></i></div><span>${Math.max(0, Math.round(f.hp))}</span></div>`;
   $('status').innerHTML = a ? row(a, 'a') + row(b, 'b') : '';
 }
 const fill = (s, A, B) => s.replace(/\{A\}/g, A.n).replace(/\{B\}/g, B.n);
@@ -334,6 +337,39 @@ const OUTRO_L = [
   '観客席の{L}の家族が、そっと拍手を送っている。',
   '{L}「……能力、選び直したい」',
 ];
+const T = (arr, o) => pick(arr).replace(/\{(\w+)\}/g, (_, k) => o[k] != null ? o[k] : '');
+const CALL_IN = [
+  '実況「{side}コーナー、{n}！　{label}、切り札は『{sk}』！」',
+  '実況「{side}コーナーからは{n}の入場です！　{label}、隠し持つのは『{sk}』！」',
+  '実況「さあ{side}コーナー、{n}！　{label}が、会場をざわつかせています！　切り札は『{sk}』！」',
+  '実況「続いて{side}コーナー、{n}！　{label}、そして『{sk}』の使い手です！」',
+  '実況「{side}コーナー、{n}！　{label}、『{sk}』で何を見せてくれるのか！」',
+  '実況「{side}コーナー、{n}！　{label}、本日の予想オッズは……聞かないでおきましょう！」',
+];
+const TALK_EL = [
+  '解説「{x}は{y}に強い。属性では{n}が有利ですね」',
+  '解説「属性相性を見ると、{n}の{x}が{y}を押さえています」',
+  '解説「{x}対{y}。この組み合わせは{n}に追い風です」',
+  '解説「{y}使いにとって、{x}はいちばん当たりたくない相手ですよ」',
+];
+const TALK_GAP = [
+  '解説「これは……地力が違いすぎます。{n}、余裕の表情です」',
+  '解説「正直に言うと、勝負になっていませんね」',
+  '解説「{n}、まだ本気を出していませんよ。あくびが出ています」',
+  '解説「格の違いを見せつけていますね。{m}は、ここから何ができるか」',
+];
+const TALK_EVEN = [
+  '解説「{n}がやや押していますね。でも、まだ切り札が残っています」',
+  '解説「ほぼ互角です。勝負は切り札しだいでしょう」',
+  '解説「{n}が一歩リード。ただ、{m}の目はまだ死んでいません」',
+  '解説「いい試合ですね。こういうのを待っていました」',
+  '解説「今のところ{n}ペース。でも、この大会は何が起きるか分かりません」',
+];
+const PUSH = ['実況「{n}、このまま押し切るか！？」','実況「{n}の猛攻！　これは決まってしまうのか！？」','実況「{m}、追い詰められた！　もうあとがないぞ！」','実況「{n}、勝利は目前か！？」'];
+const TURN = ['実況「な、なんとー！形勢逆転だーっ！」','実況「ひっくり返したーっ！　会場総立ちです！」','実況「これが切り札の力かーっ！」','実況「信じられません！　流れが完全に変わりました！」','実況「出たーっ！　ここで切り札が火を噴いたーっ！」'];
+const NOEFFECT = ['実況「効いてない！{n}、びくともしません！」','実況「なんということだ！　切り札がまったく通じない！」','実況「{n}、涼しい顔だーっ！」','実況「これは厳しい！　{m}の切り札、空振りです！」'];
+const UH_OH = ['実況「おっと、これは……！？」','実況「ちょっと待ってください、何か起きています！」','実況「え、今のは……？」','実況「会場がざわついています！」'];
+const CHANCE = ['実況「{n}、この隙を見逃さない！」','実況「{n}、ちゃっかり攻めに転じた！」','実況「チャンスだ{n}！」','実況「{n}、迷わず踏み込んだーっ！」'];
 const fill2 = (s, W, L) => s.replace(/\{W\}/g, W.n).replace(/\{L\}/g, L.n);
 async function hit(atk, def, dmg, text, C, a, b){
   dmg = Math.max(0, Math.round(Math.min(dmg, def.hp)));
@@ -346,9 +382,9 @@ async function fight(a, b){
   a.hp = 100; b.hp = 100; status(a, b);
   const C = f => f === a ? 'a' : 'b';
   // ===== 起：入場 =====
-  await line(`実況「青コーナー、${a.n}！　${a.label}、切り札は『${a.skill.n}』！」`, 'say');
+  await line(T(CALL_IN, {side:'青', n:a.n, label:a.label, sk:a.skill.n}), 'say');
   await reveal(a);
-  await line(`実況「赤コーナー、${b.n}！　${b.label}、切り札は『${b.skill.n}』！」`, 'say');
+  await line(T(CALL_IN, {side:'赤', n:b.n, label:b.label, sk:b.skill.n}), 'say');
   await reveal(b);
 
   // 勝敗とパターンを決める
@@ -374,13 +410,16 @@ async function fight(a, b){
   // 解説
   if (EL_BEATS[a.el] === b.el || EL_BEATS[b.el] === a.el){
     const s1 = EL_BEATS[a.el] === b.el ? a : b, s2 = s1 === a ? b : a;
-    await line(`解説「${EL[s1.el].n}は${EL[s2.el].n}に強い。属性では${s1.n}が有利ですね」`, 'say');
+    await line(T(TALK_EL, {x:EL[s1.el].n, y:EL[s2.el].n, n:s1.n}), 'say');
   } else if (gap >= 35){
     const hi = a.power > b.power ? a : b;
-    await line(`解説「これは……地力が違いすぎます。${hi.n}、余裕の表情です」`, 'say');
+    await line(T(TALK_GAP, {n:hi.n, m:(hi === a ? b : a).n}), 'say');
   } else {
-    await line(`解説「${lead.n}がやや押していますね。でも、まだ切り札が残っています」`, 'say');
+    await line(T(TALK_EVEN, {n:lead.n, m:(lead === a ? b : a).n}), 'say');
   }
+
+  // 試合の半分まで来たら、いったんタップを待つ
+  await tapToContinue();
 
   // ===== 転：切り札・ハプニング =====
   if (found && !decisive){
@@ -390,20 +429,20 @@ async function fight(a, b){
     await line('――そのとき、思いもよらないことが起きた。', 'sys');
     for (const t of found.ev.t) await line(fill(t, found.A, found.B), 'ev', 900);
   } else if (pattern === 'comeback'){
-    await line(`実況「${L.n}、このまま押し切るか！？」`, 'say');
+    await line(T(PUSH, {n:L.n, m:W.n}), 'say');
     await line(`${W.n}「……まだだ。切り札『${W.skill.n}』！」`, C(W), 800);
     await hit(W, L, 45 + R() * 15, fill(pick(W.skill.lines), W, L), C, a, b);
-    await line('実況「な、なんとー！形勢逆転だーっ！」', 'say');
+    await line(T(TURN, {}), 'say');
   } else if (pattern === 'crush'){
     await line(`${L.n}「こうなったら……切り札『${L.skill.n}』！」`, C(L), 800);
     await line(fill(pick(L.skill.lines), L, W), C(L), 900);
     if (L.skill.p < 15) await line(`……${W.n}は、きょとんとしている。何も起きていない。`, 'dim', 900);
     else await line(`しかし${W.n}は、それを真正面から受け止めた！`, C(W), 900);
-    await line(`実況「効いてない！${W.n}、びくともしません！」`, 'say');
+    await line(T(NOEFFECT, {n:W.n, m:L.n}), 'say');
   } else {
-    await line(`実況「おっと、これは……！？」`, 'say');
+    await line(T(UH_OH, {}), 'say');
     await line(fill2(pick(HAPPEN), W, L), 'ev', 1000);
-    await line(`実況「${W.n}、この隙を見逃さない！」`, 'say');
+    await line(T(CHANCE, {n:W.n}), 'say');
   }
 
   // ===== 結：決着 =====
