@@ -54,6 +54,16 @@
   .res div{display:flex;gap:8px;border-bottom:1px solid #222a48;padding:4px 0}
   .res b{width:2.2em;color:var(--gold);text-align:center}
   .res span{flex:1}
+  /* 横向き：パネルは中央寄せ、試合は左にHP・右にログ */
+  @media (orientation: landscape){
+    .scr > .win{max-width:620px;width:100%;margin-left:auto!important;margin-right:auto!important}
+    #battle{display:none;grid-template-columns:minmax(220px,32%) 1fr;grid-template-rows:auto 1fr;column-gap:12px}
+    #battle.on{display:grid}
+    #top{grid-column:1 / 3}
+    #status{align-self:start}
+    #log{margin-top:0;min-height:0}
+    .els{grid-template-columns:repeat(5,1fr)}
+  }
 </style>
 </head>
 <body>
