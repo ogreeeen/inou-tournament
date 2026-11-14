@@ -394,6 +394,23 @@ const NOEFFECT = ['実況「効いてない！{n}、びくともしません！�
 const UH_OH = ['実況「おっと、これは……！？」','実況「ちょっと待ってください、何か起きています！」','実況「え、今のは……？」','実況「会場がざわついています！」'];
 const CHANCE = ['実況「{n}、この隙を見逃さない！」','実況「{n}、ちゃっかり攻めに転じた！」','実況「チャンスだ{n}！」','実況「{n}、迷わず踏み込んだーっ！」'];
 const fill2 = (s, W, L) => s.replace(/\{W\}/g, W.n).replace(/\{L\}/g, L.n);
+// 切り札を使う：回復系は回復、守り系は防いでから反撃、それ以外は攻撃
+const isHeal = f => f.skill.tags.includes('heal');
+const isGuard = f => f.skill.id === 'ironwall';
+async function useSkill(user, foe, dmg, C, a, b){
+  const text = fill(pick(user.skill.lines), user, foe);
+  if (isHeal(user)){
+    const h = Math.round(Math.min(100 - user.hp, 35 + R() * 20));
+    user.hp += h; status(a, b);
+    await line(`▶ ${text}（${user.n}の体力が ${h} 回復）`, C(user), 900);
+    await hit(user, foe, dmg, fill(pick(user.job.lines), user, foe), C, a, b);
+  } else if (isGuard(user)){
+    await line(`▶ ${foe.n}の攻撃！　……${text}`, C(user), 900);
+    await hit(user, foe, dmg, `すかさず反撃！ ${fill(pick(user.job.lines), user, foe)}`, C, a, b);
+  } else {
+    await hit(user, foe, dmg, text, C, a, b);
+  }
+}
 async function hit(atk, def, dmg, text, C, a, b){
   dmg = Math.max(0, Math.round(Math.min(dmg, def.hp)));
   def.hp -= dmg; status(a, b);
@@ -469,19 +486,22 @@ async function fight(a, b){
   } else if (pattern === 'comeback'){
     await line(T(PUSH, {n:L.n, m:W.n}), 'say');
     await line(`${W.n}「……まだだ。切り札『${W.skill.n}』！」`, C(W), 800);
-    await hit(W, L, 45 + R() * 15, fill(pick(W.skill.lines), W, L), C, a, b);
+    await useSkill(W, L, 45 + R() * 15, C, a, b);
     await line(T(TURN, {}), 'say');
   } else if (pattern === 'steady'){
     await line(T(['実況「{n}、攻撃の手をゆるめない！」','実況「{n}が完全に流れをつかんでいます！」','実況「{m}、防戦一方だ！」'], {n:W.n, m:L.n}), 'say');
     await line(`${W.n}「決めさせてもらう。切り札『${W.skill.n}』！」`, C(W), 800);
-    await hit(W, L, Math.min(L.hp - 4, 30 + R() * 15), fill(pick(W.skill.lines), W, L), C, a, b);
+    await useSkill(W, L, Math.min(L.hp - 4, 30 + R() * 15), C, a, b);
     await line(T(['解説「最後まで落ち着いていましたね。危なげない試合です」','解説「これは、実力どおりの展開ですね」','実況「{m}、もう立っているのがやっとだ！」'], {m:L.n}), 'say');
   } else if (pattern === 'crush'){
     await line(`${L.n}「こうなったら……切り札『${L.skill.n}』！」`, C(L), 800);
     await line(fill(pick(L.skill.lines), L, W), C(L), 900);
-    if (L.skill.p < 15) await line(`……${W.n}は、きょとんとしている。何も起きていない。`, 'dim', 900);
+    if (isHeal(L)){ const h = Math.round(Math.min(100 - L.hp, 20 + R() * 15)); L.hp += h; status(a, b);
+      await line(`${L.n}の体力が ${h} 回復した！　……しかし${W.n}の勢いは止まらない！`, C(W), 900); }
+    else if (isGuard(L)) await line(`${L.n}は守りを固めた！　……しかし${W.n}は、守りごと押し切ってくる！`, C(W), 900);
+    else if (L.skill.p < 15) await line(`……${W.n}は、きょとんとしている。何も起きていない。`, 'dim', 900);
     else await line(`しかし${W.n}は、それを真正面から受け止めた！`, C(W), 900);
-    await line(T(NOEFFECT, {n:W.n, m:L.n}), 'say');
+    await line(isHeal(L) || isGuard(L) ? T(['実況「立て直したが、流れは変わらない！」','実況「粘る！　しかし、ここまでか！？」'], {}) : T(NOEFFECT, {n:W.n, m:L.n}), 'say');
   } else {
     await line(T(UH_OH, {}), 'say');
     await line(fill2(pick(HAPPEN), W, L), 'ev', 1000);
